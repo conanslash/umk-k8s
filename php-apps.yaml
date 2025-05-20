@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      containers:
+        - name: php-container
+          image: conanslash/php-pod-info:latest # ← Replace with your Docker Hub username
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-app
+  annotations:
+    purelb.io/service-group: default # Optional: for PureLB LoadBalancer support
+spec:
+  type: LoadBalancer
+  selector:
+    app: php-app
+  ports:
+    - port: 80
+      targetPort: 80
