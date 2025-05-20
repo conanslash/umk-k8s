@@ -17,6 +17,12 @@ spec:
           image: conanslash/php-pod-info:latest # ← Replace with your Docker Hub username
           ports:
             - containerPort: 80
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: php-config
+                  key: APP_ENV
 ---
 apiVersion: v1
 kind: Service

@@ -17,3 +17,10 @@ spec:
           image: nginx
           ports:
             - containerPort: 80
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: php-config
+                  key: APP_ENV
+          
