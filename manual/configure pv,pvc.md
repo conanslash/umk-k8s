@@ -46,10 +46,10 @@ Contoh fail `pvc.yaml`:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: php-pv
+  name: php-pvc
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 1Gi
