@@ -49,7 +49,7 @@ Contoh fail `pvc.yaml`:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: contoh-pvc
+  name: php-pvc
 spec:
   accessModes:
     - ReadWriteOnce

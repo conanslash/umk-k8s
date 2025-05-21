@@ -21,7 +21,7 @@ spec:
   accessModes:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: nfs
+  storageClassName: ""
   nfs:
     path: /kebetest
     server: cohecbjvip.umk.edu.my   # Ganti dengan IP server NFS anda

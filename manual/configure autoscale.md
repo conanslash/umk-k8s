@@ -98,20 +98,27 @@ kubectl apply -f php-app-hpa.yaml
 
 ### 🧪 Simulate Load
 
-To simulate CPU load, you can:
 
-1. Use a tool like **`ab` (Apache Bench)** or **`wrk`** to send traffic to the service:
+1. Create a pod to send requests:
 
-   ```bash
-   ab -n 10000 -c 100 http://<LoadBalancer-IP>/
-   ```
+    ```bash
+    kubectl run -i --tty load-generator --image=busybox /bin/sh
+    ```
 
-2. Or use a busy loop in a sidecar container to generate artificial CPU load:
+2. In that shell, run:
 
-   ```bash
-   while true; do echo "Consuming CPU..."; done
-   ```
+    ```sh
+    while true; do wget -q -O- http://php-apache.default.svc.cluster.local; done
+    ```
 
+
+Watch the HPA react:
+
+```bash
+kubectl get hpa -w
+```
+
+You’ll see the number of pods increase as CPU usage increases.
 ---
 
 ### 🔍 Monitor the Autoscaler
