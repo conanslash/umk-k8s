@@ -17,7 +17,7 @@ kubectl get nodes
 ## Langkah 2: Pasang MetalLB
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.13/config/manifests/metallb-native.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.14.9/config/manifests/metallb-native.yaml
 ```
 
 Tunggu pod MetalLB siap:
@@ -36,20 +36,20 @@ Buat fail `metallb-config.yaml`:
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
+  name: php-ip-pool
   namespace: metallb-system
-  name: my-ip-pool
 spec:
   addresses:
-  - 192.168.1.240-192.168.1.250
+    - 10.21.21.10-10.21.21.20
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
+  name: l2adv
   namespace: metallb-system
-  name: l2-advertisement
 spec:
   ipAddressPools:
-  - my-ip-pool
+  - php-ip-pool
 ```
 
 Gantikan `192.168.1.240-192.168.1.250` ikut rangkaian anda.
