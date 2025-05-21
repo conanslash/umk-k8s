@@ -1,5 +1,3 @@
-Baik! Saya tambah **Langkah Deployment** lengkap dengan contoh manifest untuk deploy aplikasi dan servis yang guna MetalLB sebagai LoadBalancer.
-
 ---
 
 # Langkah-langkah lengkap install & deployment MetalLB dalam Kubernetes
