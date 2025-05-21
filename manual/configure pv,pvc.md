@@ -16,16 +16,14 @@ Contoh fail `pv.yaml`:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: contoh-pv
+  name: php-pv
 spec:
   capacity:
-    storage: 5Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual
   hostPath:
-    path: /mnt/data
+    path: "/mnt/data"
 ```
 
 * `capacity.storage`: kapasiti storan, contoh 5Gi.
@@ -48,14 +46,13 @@ Contoh fail `pvc.yaml`:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: php-pvc
+  name: php-pv
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
-  storageClassName: manual
+      storage: 1Gi
 ```
 
 * `requests.storage`: kapasiti storan yang diminta (5Gi).
@@ -87,57 +84,59 @@ Pastikan PVC sudah dalam status `Bound`, bermaksud PVC sudah berjaya mendapatkan
 
 ---
 
-### Langkah 5: Gunakan PVC dalam Pod
+### Langkah 5: Gunakan PVC dalam Deployment
 
-Contoh penggunaan PVC dalam pod `pod-pvc.yaml`:
+Contoh penggunaan PVC dalam pod `php-app.yaml`:
 
 ```yaml
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: contoh-pod
+  name: php-app
+  namespace: pengambilan
 spec:
-  containers:
-  - name: nginx
-    image: nginx
-    volumeMounts:
-    - mountPath: "/usr/share/nginx/html"
-      name: contoh-volume
-  volumes:
-  - name: contoh-volume
-    persistentVolumeClaim:
-      claimName: contoh-pvc
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox
+          command: ['sh', '-c', 'chmod 777 /uploads']
+          volumeMounts:
+            - name: upload-volume
+              mountPath: /uploads
+      containers:
+        - name: php-container
+          image: conanslash/php-pod-info:upload-0.2 # ← Replace with your Docker Hub username
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: php-config
+                  key: APP_ENV
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: php-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: upload-volume
+              mountPath: /uploads
+      volumes:
+        - name: upload-volume
+          persistentVolumeClaim:
+            claimName: php-pvc
 ```
 
 * `claimName` merujuk kepada nama PVC yang telah dibuat.
-
-**Jalankan perintah:**
-
-```bash
-kubectl apply -f pod-pvc.yaml
-```
-
----
-
-### Langkah 6: Semak Pod
-
-Pastikan pod berjalan dengan:
-
-```bash
-kubectl get pods
-```
-
----
-
-### Langkah 7: Masuk ke dalam pod dan periksa storan
-
-Masuk ke pod:
-
-```bash
-kubectl exec -it contoh-pod -- /bin/bash
-```
-
-Periksa folder `/usr/share/nginx/html` yang sudah dipasang volume dari PVC.
 
 ---
 
@@ -147,5 +146,3 @@ Periksa folder `/usr/share/nginx/html` yang sudah dipasang volume dari PVC.
 * `hostPath` hanya sesuai untuk environment tempatan atau demo sahaja.
 
 ---
-
-Kalau mahu, saya boleh sediakan contoh YAML lengkap atau terangkan langkah penggunaan `StorageClass` pula! Nak cuba?
