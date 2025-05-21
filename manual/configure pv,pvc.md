@@ -1,4 +1,3 @@
-Berikut adalah **langkah demi langkah dalam Bahasa Melayu** untuk melaksanakan **Persistent Volume Claim (PVC)** dalam Kubernetes (k8s):
 
 ---
 
