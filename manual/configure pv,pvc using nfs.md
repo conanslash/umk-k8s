@@ -1,5 +1,3 @@
-Baik! Saya akan tunjukkan contoh lengkap menggunakan **NFS sebagai Persistent Volume (PV)** dan **Persistent Volume Claim (PVC)** yang digunakan dalam **Deployment** di Kubernetes.
-
 ---
 
 ## Contoh lengkap: NFS + PVC + Deployment
