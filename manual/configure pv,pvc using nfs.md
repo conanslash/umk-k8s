@@ -8,7 +8,7 @@
 ```yaml
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
 
-helm install nfs-client-1 nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+helm install nfs-client nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
   --namespace nfs-provisioner --create-namespace \
   -f values.yaml
 ```
