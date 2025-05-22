@@ -5,6 +5,35 @@ Baik! Saya akan tunjukkan contoh lengkap menggunakan **NFS sebagai Persistent Vo
 ## Contoh lengkap: NFS + PVC + Deployment
 
 ---
+### Install HelM
+
+```yaml
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+
+helm install nfs-client-1 nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
+  --namespace nfs-provisioner --create-namespace \
+  -f values.yaml
+```
+
+Fail:  `values.yaml`
+
+```yaml
+nfs:
+  server: cohecbjvip.umk.edu.my
+  path: /kebetest
+  mountOptions:
+    - vers=4
+    - nolock
+    - noatime
+    - hard
+    - timeo=600
+    - retrans=2
+
+storageClass:
+  name: nfs-client
+  defaultClass: true
+```
+
 
 ### 1. Persistent Volume (PV) guna NFS
 
@@ -17,14 +46,13 @@ metadata:
   name: pv-nfs
 spec:
   capacity:
-    storage: 5Gi
+    storage: 20Gi
   accessModes:
     - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
+  storageClassName: nfs-client
   nfs:
-    path: /kebetest
-    server: cohecbjvip.umk.edu.my   # Ganti dengan IP server NFS anda
+    path: /mnt/training/k8s
+    server: 10.21.21.200
 ```
 
 ---
@@ -38,46 +66,68 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: pvc-nfs
+  namespace: pengambilan
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
-  storageClassName: nfs
+  storageClassName: nfs-client
 ```
 
 ---
 
 ### 3. Deployment guna PVC
 
-Fail: `deployment-nfs.yaml`
+Fail: `php-app.yaml`
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-nfs-deployment
+  name: php-app
+  namespace: pengambilan
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: nginx-nfs
+      app: php-app
   template:
     metadata:
       labels:
-        app: nginx-nfs
+        app: php-app
     spec:
+      securityContext:
+        fsGroup: 1000  # Ensure this group has write access in the container
       containers:
-      - name: nginx
-        image: nginx
-        volumeMounts:
-        - name: nfs-storage
-          mountPath: /usr/share/nginx/html
+        - name: php-container
+          image: conanslash/php-pod-info:upload-0.4 # ← Replace with your Docker Hub username
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: php-config
+                  key: APP_ENV
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: php-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - name: upload-volume
+              mountPath: /uploads
+            - name: nfs-storage
+              mountPath: /uploads-nfs
       volumes:
-      - name: nfs-storage
-        persistentVolumeClaim:
-          claimName: pvc-nfs
+        - name: upload-volume
+          persistentVolumeClaim:
+            claimName: php-pvc
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: pvc-nfs
 ```
 
 ---

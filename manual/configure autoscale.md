@@ -33,8 +33,27 @@ Update your `Deployment` to include `resources` under the `containers` section:
 Final container section should look like this:
 
 ```yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-app
+  namespace: pengambilan
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: php-app
+  template:
+    metadata:
+      labels:
+        app: php-app
+    spec:
+      securityContext:
+        fsGroup: 1000  # Ensure this group has write access in the container
+      containers:
         - name: php-container
-          image: conanslash/php-pod-info:upload-0.2
+          image: conanslash/php-pod-info:upload-0.4 # ← Replace with your Docker Hub username
           ports:
             - containerPort: 80
           env:
@@ -51,13 +70,25 @@ Final container section should look like this:
           volumeMounts:
             - name: upload-volume
               mountPath: /uploads
-          resources:
+            - name: nfs-storage
+              mountPath: /uploads-nfs
+					 resources:
             requests:
               cpu: "100m"
               memory: "128Mi"
             limits:
               cpu: "500m"
               memory: "256Mi"
+      volumes:
+        - name: upload-volume
+          persistentVolumeClaim:
+            claimName: php-pvc
+        - name: nfs-storage
+          persistentVolumeClaim:
+            claimName: pvc-nfs
+
+
+
 ```
 
 ---
